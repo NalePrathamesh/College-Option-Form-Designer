@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>College Distance Finder</title>
+
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="libs/leaflet/leaflet.css" />
+  <!-- Your Custom CSS -->
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body class="dark-mode">
+
+  <!-- 🌗 Dark Mode Toggle -->
+  <div id="theme-toggle-wrapper">
+    <label class="switch">
+      <input type="checkbox" id="theme-toggle" />
+      <span class="slider"></span>
+    </label>
+  </div>
+
+  <h1>College Distance Finder</h1>
+  <p>Upload your college list and click on the map to set your current location</p>
+
+  <!-- File Upload -->
+  <input type="file" id="file" accept=".xlsx" />
+
+  <!-- 📋 Results Table -->
+  <div id="results">
+    <table>
+      <thead>
+        <tr>
+          <th>Preference No.</th>
+          <th>College Name</th>
+          <th>Course</th>
+          <th>Choice Code</th>
+          <th>Rank</th>
+          <th>Percentile</th>
+          <th>Fees</th>
+          <th>Distance (km)</th>
+        </tr>
+      </thead>
+      <tbody id="results-body"></tbody>
+    </table>
+  </div>
+
+  <!-- 🗺️ Map Display -->
+  <div id="map" style="height: 500px; margin-top: 10px;"></div>
+
+  <!-- 📤 Export Buttons -->
+  <div style="margin-top: 10px;">
+    <button id="export-excel">Download as Excel</button>
+    <button id="export-pdf">Download as PDF</button>
+  </div>
+
+  <!-- Scripts -->
+  <!-- Leaflet JS -->
+  <script src="libs/leaflet/leaflet.js"></script>
+
+  <!-- SheetJS (CDN version preferred for stability) -->
+  <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+
+  <!-- jsPDF -->
+  <script src="libs/jspdf/dist/jspdf.umd.min.js"></script>
+
+  <!-- html2canvas -->
+  <script src="libs/html2canvas.min.js"></script>
+
+  <!-- Your Main JS -->
+  <script src="script.js"></script>
+
+  <!-- 🔄 Drag-and-Drop Support -->
+  <script>
+    let draggedRow = null;
+
+    document.addEventListener('dragstart', function (e) {
+      if (e.target.tagName === 'TR') {
+        draggedRow = e.target;
+        e.dataTransfer.effectAllowed = 'move';
+      }
+    });
+
+    document.addEventListener('dragover', function (e) {
+      if (e.target.closest('tr')) {
+        e.preventDefault();
+      }
+    });
+
+    document.addEventListener('drop', function (e) {
+      e.preventDefault();
+      const targetRow = e.target.closest('tr');
+      if (draggedRow && targetRow && draggedRow !== targetRow) {
+        const tableBody = document.querySelector('#results-body');
+        const draggedIndex = [...tableBody.children].indexOf(draggedRow);
+        const targetIndex = [...tableBody.children].indexOf(targetRow);
+
+        if (draggedIndex < targetIndex) {
+          tableBody.insertBefore(draggedRow, targetRow.nextSibling);
+        } else {
+          tableBody.insertBefore(draggedRow, targetRow);
+        }
+
+        updatePreferenceNumbers();
+      }
+    });
+
+    function updatePreferenceNumbers() {
+      const rows = document.querySelectorAll('#results-body tr');
+      rows.forEach((row, index) => {
+        row.cells[0].textContent = index + 1;
+      });
+    }
+
+    // Mark rows as draggable when dynamically added from script.js
+    const observer = new MutationObserver(() => {
+      document.querySelectorAll('#results-body tr').forEach(row => {
+        row.setAttribute('draggable', 'true');
+      });
+    });
+
+    observer.observe(document.getElementById('results-body'), { childList: true });
+  </script>
+
+</body>
+</html>
